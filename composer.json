@@ -1,5 +1,6 @@
 {
   "name": "socles/api-symfony-shell",
+  "description": "Reusable Symfony API shell with JWT auth, RBAC, validation, tests, and OpenAPI contract checks.",
   "type": "project",
   "license": "proprietary",
   "minimum-stability": "stable",
