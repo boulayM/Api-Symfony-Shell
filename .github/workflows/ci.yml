@@ -31,6 +31,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare CI env files
+        run: |
+          cat > .env <<'EOF'
+          APP_ENV=dev
+          APP_DEBUG=1
+          APP_SECRET=CI_APP_SECRET
+          DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
+          JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private-test.pem
+          JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public-test.pem
+          JWT_PASSPHRASE=CHANGE_ME_TEST
+          ACCESS_TOKEN_TTL=900
+          REFRESH_TOKEN_TTL=86400
+          FRONT_URL=http://localhost:8081
+          TRUSTED_ORIGINS=^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$
+          CSRF_COOKIE_NAME=XSRF-TOKEN
+          CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+          EOF
+          cp .env .env.test
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -48,7 +67,7 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
       - name: Prepare test JWT keys
         env:
