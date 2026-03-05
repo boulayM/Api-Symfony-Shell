@@ -74,18 +74,23 @@ jobs:
         env:
           APP_ENV: test
           APP_DEBUG: 1
-          JWT_SECRET_KEY: config/jwt/private-test.pem
-          JWT_PUBLIC_KEY: config/jwt/public-test.pem
+          JWT_SECRET_KEY: ${{ github.workspace }}/config/jwt/private-test.pem
+          JWT_PUBLIC_KEY: ${{ github.workspace }}/config/jwt/public-test.pem
           JWT_PASSPHRASE: CHANGE_ME_TEST
         run: php bin/console lexik:jwt:generate-keypair --overwrite
+
+      - name: Verify test JWT keys exist
+        run: |
+          test -f "${{ github.workspace }}/config/jwt/private-test.pem"
+          test -f "${{ github.workspace }}/config/jwt/public-test.pem"
 
       - name: Ensure test database exists
         env:
           APP_ENV: test
           APP_DEBUG: 1
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
-          JWT_SECRET_KEY: config/jwt/private-test.pem
-          JWT_PUBLIC_KEY: config/jwt/public-test.pem
+          JWT_SECRET_KEY: ${{ github.workspace }}/config/jwt/private-test.pem
+          JWT_PUBLIC_KEY: ${{ github.workspace }}/config/jwt/public-test.pem
           JWT_PASSPHRASE: CHANGE_ME_TEST
         run: php bin/console doctrine:database:create --if-not-exists --env=test
 
@@ -94,7 +99,7 @@ jobs:
           APP_ENV: test
           APP_DEBUG: 1
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
-          JWT_SECRET_KEY: config/jwt/private-test.pem
-          JWT_PUBLIC_KEY: config/jwt/public-test.pem
+          JWT_SECRET_KEY: ${{ github.workspace }}/config/jwt/private-test.pem
+          JWT_PUBLIC_KEY: ${{ github.workspace }}/config/jwt/public-test.pem
           JWT_PASSPHRASE: CHANGE_ME_TEST
         run: composer release:check
