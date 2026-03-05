@@ -24,6 +24,7 @@ jobs:
           APP_ENV=dev
           APP_DEBUG=1
           APP_SECRET=CI_APP_SECRET
+          DEFAULT_URI=http://127.0.0.1:8000
           DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
           JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private-test.pem
           JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public-test.pem
