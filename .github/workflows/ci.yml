@@ -41,7 +41,7 @@ jobs:
           DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
           JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
           JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
-          JWT_PASSPHRASE=
+          JWT_PASSPHRASE=CHANGE_ME
           ACCESS_TOKEN_TTL=900
           REFRESH_TOKEN_TTL=86400
           FRONT_URL=http://localhost:8081
@@ -76,7 +76,7 @@ jobs:
           APP_DEBUG: 1
           JWT_SECRET_KEY: ${{ github.workspace }}/config/jwt/private.pem
           JWT_PUBLIC_KEY: ${{ github.workspace }}/config/jwt/public.pem
-          JWT_PASSPHRASE: ""
+          JWT_PASSPHRASE: CHANGE_ME
         run: php bin/console lexik:jwt:generate-keypair --overwrite
 
       - name: Verify JWT keys exist
@@ -91,7 +91,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
           JWT_SECRET_KEY: ${{ github.workspace }}/config/jwt/private.pem
           JWT_PUBLIC_KEY: ${{ github.workspace }}/config/jwt/public.pem
-          JWT_PASSPHRASE: ""
+          JWT_PASSPHRASE: CHANGE_ME
         run: php bin/console doctrine:database:create --if-not-exists --env=test
 
       - name: Run release checks
@@ -101,5 +101,5 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
           JWT_SECRET_KEY: ${{ github.workspace }}/config/jwt/private.pem
           JWT_PUBLIC_KEY: ${{ github.workspace }}/config/jwt/public.pem
-          JWT_PASSPHRASE: ""
+          JWT_PASSPHRASE: CHANGE_ME
         run: composer release:check
