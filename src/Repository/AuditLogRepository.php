@@ -65,6 +65,7 @@ final class AuditLogRepository extends ServiceEntityRepository
         $qb->orderBy($sortField, $order);
 
         $countQb = clone $qb;
+        $countQb->resetDQLPart('orderBy');
         $total = (int) $countQb
             ->select('COUNT(a.id)')
             ->getQuery()
@@ -82,4 +83,3 @@ final class AuditLogRepository extends ServiceEntityRepository
         ];
     }
 }
-

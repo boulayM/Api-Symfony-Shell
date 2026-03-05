@@ -66,6 +66,7 @@ final class UserRepository extends ServiceEntityRepository
         $qb->orderBy($sortField, $order);
 
         $countQb = clone $qb;
+        $countQb->resetDQLPart('orderBy');
         $total = (int) $countQb
             ->select('COUNT(u.id)')
             ->getQuery()

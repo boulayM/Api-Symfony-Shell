@@ -92,7 +92,13 @@
     "check:security": "composer audit --no-interaction --format=summary",
     "ps:dev:start": "powershell -ExecutionPolicy Bypass -File scripts/powershell/dev-start.ps1",
     "ps:db:reset": "powershell -ExecutionPolicy Bypass -File scripts/powershell/db-reset.ps1",
-    "ps:test:http": "powershell -ExecutionPolicy Bypass -File scripts/powershell/test-http.ps1"
+    "ps:test:http": "powershell -ExecutionPolicy Bypass -File scripts/powershell/test-http.ps1",
+    "test:http:newman:user": "npx newman run postman/user.collection.json -e postman/Api-Test.postman_environment.json -r \"cli,htmlextra\" --reporter-htmlextra-export \"postman/reports/report-user.html\"",
+    "test:http:newman:admin": "npx newman run postman/admin.collection.json -e postman/Api-Test.postman_environment.json -r \"cli,htmlextra\" --reporter-htmlextra-export \"postman/reports/report-admin.html\"",
+    "test:http:newman": [
+      "@test:http:newman:user",
+      "@test:http:newman:admin"
+    ]
   },
   "conflict": {
     "symfony/symfony": "*"
@@ -113,3 +119,4 @@
     }
   }
 }
+

@@ -28,3 +28,6 @@
 /Thumbs.db
 /coverage/
 *.log
+/postman/reports/*.html
+/.env.dev
+

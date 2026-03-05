@@ -78,6 +78,9 @@ symfony server:start
 - `composer check:openapi-routes`
 - `composer check:security`
 - `composer release:check`
+- `composer test:http:newman:user`
+- `composer test:http:newman:admin`
+- `composer test:http:newman`
 
 ## Comptes fixtures
 
@@ -89,7 +92,29 @@ symfony server:start
 - `docs/playbook.md`
 - `docs/CONTRACT.md`
 - `docs/release-checklist.md`
-- `docs/swagger.yaml`\r\n- `docs/adaptation-ticket-template.md`
+- `docs/swagger.yaml`
+- `docs/adaptation-ticket-template.md`
+
+## Postman/Newman
+
+- `postman/user.collection.json`: parcours user (session isolee)
+- `postman/admin.collection.json`: parcours admin (session isolee)
+- `postman/Api-Test.postman_environment.json`: variables locales (`baseUrl`, credentials fixtures)
+- Rapports HTML: `postman/reports/report-user.html`, `postman/reports/report-admin.html`
+
+Execution (comme le socle de reference):
+
+```bash
+composer test:http:newman:user
+composer test:http:newman:admin
+composer test:http:newman
+```
+
+Si besoin installer en global:
+
+```bash
+npm install -g newman newman-reporter-htmlextra
+```
 
 ## CI
 
@@ -127,3 +152,4 @@ docker compose exec php composer test
 - `composer ps:dev:start`
 - `composer ps:db:reset`
 - `composer ps:test:http`
+
