@@ -44,6 +44,8 @@ symfony server:start
 ## Routes core
 
 - `GET /api/health`
+- `GET /api/docs`
+- `GET /api/docs/swagger.yaml`
 - `GET /api/csrf`
 - `POST /api/auth/login`
 - `POST /api/auth/register`

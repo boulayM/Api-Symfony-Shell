@@ -6,11 +6,14 @@ $allowedExtensions = ['php', 'yaml', 'yml', 'xml', 'md', 'env', 'dist'];
 $root = dirname(__DIR__);
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
 $errors = [];
+$ignoredDirectories = ['.git', 'vendor', 'var', 'node_modules', 'dist'];
 
 foreach ($iterator as $file) {
     $path = (string) $file;
-    if (str_contains($path, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR) || str_contains($path, DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR)) {
-        continue;
+    foreach ($ignoredDirectories as $ignoredDirectory) {
+        if (str_contains($path, DIRECTORY_SEPARATOR . $ignoredDirectory . DIRECTORY_SEPARATOR)) {
+            continue 2;
+        }
     }
 
     $extension = pathinfo($path, PATHINFO_EXTENSION);
