@@ -26,9 +26,9 @@ jobs:
           APP_SECRET=CI_APP_SECRET
           DEFAULT_URI=http://127.0.0.1:8000
           DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
-          JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private-test.pem
-          JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public-test.pem
-          JWT_PASSPHRASE=CHANGE_ME_TEST
+          JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+          JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+          JWT_PASSPHRASE=CI_JWT_PASSPHRASE
           ACCESS_TOKEN_TTL=900
           REFRESH_TOKEN_TTL=86400
           FRONT_URL=http://localhost:8081
