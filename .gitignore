@@ -30,4 +30,8 @@
 *.log
 /postman/reports/*.html
 /.env.dev
+/docs/CONTRACT.md
+/docs/playbook.md
+/docs/release-checklist.md
+/docs/adaptation-ticket-template.md
 
