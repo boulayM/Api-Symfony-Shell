@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  release-check:
+    name: Release Check
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: symfony_api_shell_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d symfony_api_shell_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          extensions: ctype, iconv, pdo_pgsql
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare test JWT keys
+        env:
+          APP_ENV: test
+          APP_DEBUG: 1
+          JWT_SECRET_KEY: config/jwt/private-test.pem
+          JWT_PUBLIC_KEY: config/jwt/public-test.pem
+          JWT_PASSPHRASE: CHANGE_ME_TEST
+        run: php bin/console lexik:jwt:generate-keypair --overwrite
+
+      - name: Ensure test database exists
+        env:
+          APP_ENV: test
+          APP_DEBUG: 1
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
+          JWT_SECRET_KEY: config/jwt/private-test.pem
+          JWT_PUBLIC_KEY: config/jwt/public-test.pem
+          JWT_PASSPHRASE: CHANGE_ME_TEST
+        run: php bin/console doctrine:database:create --if-not-exists --env=test
+
+      - name: Run release checks
+        env:
+          APP_ENV: test
+          APP_DEBUG: 1
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/symfony_api_shell_test?serverVersion=16&charset=utf8
+          JWT_SECRET_KEY: config/jwt/private-test.pem
+          JWT_PUBLIC_KEY: config/jwt/public-test.pem
+          JWT_PASSPHRASE: CHANGE_ME_TEST
+        run: composer release:check

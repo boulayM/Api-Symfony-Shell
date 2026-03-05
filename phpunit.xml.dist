@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="project test suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <server name="APP_ENV" value="test" force="true"/>
+        <server name="KERNEL_CLASS" value="App\Kernel"/>
+        <server name="DATABASE_URL" value="sqlite:///%kernel.project_dir%/var/test.db"/>
+        <server name="JWT_SECRET_KEY" value="%kernel.project_dir%/config/jwt/private.pem"/>
+        <server name="JWT_PUBLIC_KEY" value="%kernel.project_dir%/config/jwt/public.pem"/>
+        <server name="JWT_PASSPHRASE" value="CHANGE_ME"/>
+    </php>
+</phpunit>

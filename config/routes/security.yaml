@@ -1,0 +1,6 @@
+api_auth_login:
+    path: /api/auth/login
+
+_security_logout:
+    resource: security.route_loader.logout
+    type: service

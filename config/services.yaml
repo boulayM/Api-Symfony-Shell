@@ -1,0 +1,30 @@
+parameters:
+  app.csrf_cookie_name: '%env(string:CSRF_COOKIE_NAME)%'
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  App\:
+    resource: '../src/'
+    exclude:
+      - '../src/DependencyInjection/'
+      - '../src/Entity/'
+      - '../src/Kernel.php'
+
+  App\Controller\:
+    resource: '../src/Controller/'
+    tags: ['controller.service_arguments']
+
+  App\Security\CsrfDoubleSubmitGuard:
+    arguments:
+      $cookieName: '%app.csrf_cookie_name%'
+
+  App\Controller\Api\CsrfController:
+    arguments:
+      $cookieName: '%app.csrf_cookie_name%'
+
+  App\EventSubscriber\ApiExceptionSubscriber:
+    arguments:
+      $debug: '%kernel.debug%'

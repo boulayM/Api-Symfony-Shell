@@ -1,0 +1,10 @@
+framework:
+  rate_limiter:
+    auth_login:
+      policy: fixed_window
+      limit: 10
+      interval: '1 minute'
+    auth_register:
+      policy: fixed_window
+      limit: 5
+      interval: '1 minute'

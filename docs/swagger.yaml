@@ -1,0 +1,467 @@
+openapi: 3.1.0
+info:
+  title: Api-Symfony-Shell
+  version: 1.1.0
+servers:
+  - url: http://localhost:8000
+components:
+  securitySchemes:
+    bearerCookie:
+      type: apiKey
+      in: cookie
+      name: BEARER
+    refreshTokenCookie:
+      type: apiKey
+      in: cookie
+      name: refresh_token
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message, details]
+      properties:
+        code:
+          type: string
+          examples: [bad_request, unauthorized, access_denied, not_found, conflict, rate_limited, internal_error]
+        message:
+          type: string
+        details:
+          nullable: true
+          oneOf:
+            - type: string
+            - type: object
+            - type: array
+    UserDto:
+      type: object
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        roles:
+          type: array
+          items: { type: string }
+        isVerified: { type: boolean }
+        firstName: { type: [string, 'null'] }
+        lastName: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+    PaginatedUsers:
+      type: object
+      required: [data, page, limit, total]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDto'
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+    AuditLogDto:
+      type: object
+      properties:
+        id: { type: integer }
+        action: { type: string }
+        actor: { type: string }
+        context: { type: object, additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+    PaginatedAuditLogs:
+      type: object
+      required: [data, page, limit, total]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogDto'
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /api/csrf:
+    get:
+      summary: Issue CSRF token
+      responses:
+        '200':
+          description: CSRF token issued
+  /api/auth/login:
+    post:
+      summary: Login with credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Authenticated
+        '401':
+          description: Invalid credentials or throttled login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/register:
+    post:
+      summary: Public register (neutral response)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                firstName: { type: [string, 'null'] }
+                lastName: { type: [string, 'null'] }
+      responses:
+        '202':
+          description: Neutral anti-enumeration response
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many registration attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/verify-email:
+    get:
+      responses:
+        '200':
+          description: Verified
+  /api/auth/me:
+    get:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: Current user
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/refresh:
+    post:
+      security:
+        - refreshTokenCookie: []
+      responses:
+        '200':
+          description: Access token refreshed
+        '401':
+          description: Missing/invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/logout:
+    post:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: Logged out
+  /api/auth/logout-all:
+    post:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: All sessions revoked
+
+  /api/admin/users:
+    get:
+      security:
+        - bearerCookie: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: role
+          in: query
+          schema: { type: string }
+        - name: isVerified
+          in: query
+          schema:
+            type: string
+            enum: ['true', 'false', '1', '0', 'yes', 'no']
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [id, email, createdAt, firstName, lastName, isVerified]
+            default: id
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: DESC
+      responses:
+        '200':
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsers'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/users/export:
+    get:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: CSV export users
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/users/register:
+    post:
+      security:
+        - bearerCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                firstName: { type: [string, 'null'] }
+                lastName: { type: [string, 'null'] }
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied or CSRF mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/users/{id}:
+    patch:
+      security:
+        - bearerCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: User updated
+        '403':
+          description: Access denied or CSRF mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      security:
+        - bearerCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: User deleted
+        '403':
+          description: Access denied or CSRF mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/users/me:
+    get:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: Current admin
+
+  /api/admin/audit-logs:
+    get:
+      security:
+        - bearerCookie: []
+      parameters:
+        - name: action
+          in: query
+          schema: { type: string }
+        - name: actor
+          in: query
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [id, createdAt, action, actor]
+            default: id
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: DESC
+      responses:
+        '200':
+          description: Audit list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogs'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/audit-logs/export:
+    get:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: CSV export audit logs
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/admin/audit-logs/{id}:
+    get:
+      security:
+        - bearerCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Audit detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogDto'
+        '404':
+          description: Audit log not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/health:
+    get:
+      responses:
+        '200':
+          description: Public health
+  /api/public/users/me:
+    get:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: Current public user
+    patch:
+      security:
+        - bearerCookie: []
+      responses:
+        '200':
+          description: Current public user updated
+        '403':
+          description: CSRF mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
